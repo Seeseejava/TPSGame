@@ -24,6 +24,7 @@ public:
 
 protected:
 
+	virtual void BeginPlay() override;
 
 	void PlayFireEffects(FVector TracerEndPoint);
 
@@ -56,8 +57,22 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float BaseDamage;
+
+	void Fire();
+
+	FTimerHandle TimerHandle_TimeBetweenShots;          // 定时器处理程序
+
+	float LastFireTime;   // 为了处理手动比自动挡快
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float RateOfFire;
+
+	float TimeBetweenShots;
 public:	
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void Fire();
+
+
+	void StartFire();
+
+	void StopFire();
 };

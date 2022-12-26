@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
+#include "TimerManager.h"
 
 // 创建控制台指令
 static int32 DebugWeaponDrawing = 0;
@@ -27,9 +28,15 @@ ATPSweapon::ATPSweapon()
 
 	BaseDamage = 20.0f;
 
+	RateOfFire = 600;  // 每分钟可以发射的子弹数目
 }
 
+void ATPSweapon::BeginPlay()
+{
+	Super::BeginPlay();
 
+	TimeBetweenShots = 60 / RateOfFire;
+}
 
 void ATPSweapon::Fire()
 {
@@ -100,8 +107,23 @@ void ATPSweapon::Fire()
 
 		PlayFireEffects(TracerEndPoint);
 		
+		LastFireTime = GetWorld()->TimeSeconds;
 	}
 }
+
+void ATPSweapon::StartFire()
+{
+	float FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots,this, &ATPSweapon::Fire, TimeBetweenShots, true, FirstDelay);
+}
+
+void ATPSweapon::StopFire()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
+}
+
+
 
 void ATPSweapon::PlayFireEffects(FVector TracerEndPoint)
 {
