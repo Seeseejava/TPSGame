@@ -40,11 +40,28 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
 
+	bool bWantsToZoom;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float ZoomedFOV;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1, ClampMax = 100))
+	float ZoomInterpSpeed;
+
+	float DefaultFOV;
+
+	void BeginZoom();
+
+	void EndZoom();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	//重载pawn的视线位置，从眼睛改为摄像机
+	virtual FVector GetPawnViewLocation() const;
 
 };
