@@ -53,7 +53,7 @@ void ATPSweapon::Fire()
 		EPhysicalSurface SurfaceType = SurfaceType_Default;
 
 		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParms))
+		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParms))
 		{
 			// ×èÈûÖ®ºó¼ÆËãÉËº¦
 
