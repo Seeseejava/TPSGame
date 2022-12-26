@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class ATPSweapon;
 
 UCLASS()
 class TPSGAME_API ATPSCharacter : public ACharacter
@@ -53,6 +54,16 @@ protected:
 	void BeginZoom();
 
 	void EndZoom();
+
+	ATPSweapon* CurrentWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ATPSweapon> StarterWeaponClass;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName WeaponAttachScoketName;
+
+	void Fire();
 
 public:	
 	// Called every frame

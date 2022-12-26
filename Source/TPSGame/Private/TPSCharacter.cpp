@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "TPSweapon.h"
 
 // Sets default values
 ATPSCharacter::ATPSCharacter()
@@ -23,14 +24,28 @@ ATPSCharacter::ATPSCharacter()
 	
 	ZoomedFOV = 65;
 	ZoomInterpSpeed = 20;
+
+	WeaponAttachScoketName = "WeaponSocket";
 }
 
 // Called when the game starts or when spawned
 void ATPSCharacter::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay();         
 
 	DefaultFOV = CameraComp->FieldOfView;
+
+	// ´´½¨Ä¬ÈÏÎäÆ÷
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	CurrentWeapon = GetWorld()->SpawnActor<ATPSweapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachScoketName);
+	}
 	
 }
 
@@ -74,6 +89,14 @@ void ATPSCharacter::EndZoom()
 	bWantsToZoom = false;
 }
 
+void ATPSCharacter::Fire()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Fire();
+	}
+}
+
 // Called every frame
 void ATPSCharacter::Tick(float DeltaTime)
 {
@@ -105,6 +128,8 @@ void ATPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &ATPSCharacter::BeginZoom);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &ATPSCharacter::EndZoom);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATPSCharacter::Fire);
 }
 
 FVector ATPSCharacter::GetPawnViewLocation() const
