@@ -12,6 +12,7 @@ class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
 
+
 UCLASS()
 class TPSGAME_API ATPSweapon : public AActor
 {
@@ -46,6 +47,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* TracerEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<UCameraShakeBase> FireCamShake;
 public:	
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")

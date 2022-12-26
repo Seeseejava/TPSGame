@@ -92,5 +92,15 @@ void ATPSweapon::PlayFireEffects(FVector TracerEndPoint)
 			TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
 		}
 	}
+
+	APawn* MyOwner = Cast<APawn>(GetOwner());
+	if (MyOwner)
+	{
+		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController()); // GetController只是一类控制器，而不是玩家控制器
+		if (PC)
+		{
+			PC->ClientPlayCameraShake(FireCamShake);         // UE自带摄像机抖动函数
+		}
+	}
 }
 
