@@ -2,10 +2,12 @@
 
 
 #include "TPSweapon.h"
+#include "TPSGame/TPSGame.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 // 创建控制台指令
 static int32 DebugWeaponDrawing = 0;
@@ -43,9 +45,12 @@ void ATPSweapon::Fire()
 		QueryParms.AddIgnoredActor(MyOwner);
 		QueryParms.AddIgnoredActor(this);
 		QueryParms.bTraceComplex = true; //这样能够让追踪定位到目标网络的每一个三角面片
+		QueryParms.bReturnPhysicalMaterial = true;
 
 		// 粒子"Target"参数
 		FVector TracerEndPoint = TraceEnd;
+
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
 
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParms))
@@ -55,10 +60,28 @@ void ATPSweapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
-			if (ImpactEffect)
+		
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());  // 要在module rules里面加入"PhysicsCore"
+
+			UParticleSystem* SelectedEffect = nullptr;
+
+			switch (SurfaceType)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-			}	
+			case SURFACE_FLESHDEFAULT:
+				SelectedEffect = FleshImpactEffect;
+				break;
+			case SURFACE_FLESHVULNERABLE:
+				SelectedEffect = FleshImpactEffect;
+				break;
+			default:
+				SelectedEffect = DefaultImpactEffect;
+				break;
+			}
+
+			if (SelectedEffect)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+			}
 
 			TracerEndPoint = Hit.ImpactPoint;
 		}
