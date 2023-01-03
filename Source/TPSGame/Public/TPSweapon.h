@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "TPSweapon.generated.h"
+#include "TPSWeapon.generated.h"
 
 
 
@@ -14,13 +14,13 @@ class UParticleSystem;
 
 
 UCLASS()
-class TPSGAME_API ATPSweapon : public AActor
+class TPSGAME_API ATPSWeapon : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ATPSweapon();
+	ATPSWeapon();
 
 protected:
 

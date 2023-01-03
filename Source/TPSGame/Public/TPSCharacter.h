@@ -8,7 +8,8 @@
 
 class UCameraComponent;
 class USpringArmComponent;
-class ATPSweapon;
+class ATPSWeapon;
+class UTPSHealthComponent;
 
 UCLASS()
 class TPSGAME_API ATPSCharacter : public ACharacter
@@ -41,6 +42,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTPSHealthComponent* HealthComp;
+
 	bool bWantsToZoom;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
@@ -55,10 +59,10 @@ protected:
 
 	void EndZoom();
 
-	ATPSweapon* CurrentWeapon;
+	ATPSWeapon* CurrentWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
-	TSubclassOf<ATPSweapon> StarterWeaponClass;
+	TSubclassOf<ATPSWeapon> StarterWeaponClass;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName WeaponAttachScoketName;
@@ -67,6 +71,12 @@ protected:
 
 	void StopFire();
 
+	UFUNCTION()
+	void OnHealthChanged(UTPSHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	/* Pawn died previously*/
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	bool bDied;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

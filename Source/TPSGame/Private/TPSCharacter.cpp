@@ -5,7 +5,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
-#include "TPSweapon.h"
+#include "Components/CapsuleComponent.h"
+#include "TPSWeapon.h"
+#include "TPSHealthComponent.h"
+#include "TPSGame/TPSGame.h"
 
 // Sets default values
 ATPSCharacter::ATPSCharacter()
@@ -18,6 +21,10 @@ ATPSCharacter::ATPSCharacter()
 	SpringArmComp->SetupAttachment(RootComponent);
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore); //解决了攻击身体某些部位没有血迹的bug
+
+	HealthComp = CreateDefaultSubobject<UTPSHealthComponent>(TEXT("HealthComp"));
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
@@ -39,7 +46,7 @@ void ATPSCharacter::BeginPlay()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	CurrentWeapon = GetWorld()->SpawnActor<ATPSweapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	CurrentWeapon = GetWorld()->SpawnActor<ATPSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 
 	if (CurrentWeapon)
 	{
@@ -47,6 +54,7 @@ void ATPSCharacter::BeginPlay()
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachScoketName);
 	}
 	
+	HealthComp->OnHealthChanged.AddDynamic(this, &ATPSCharacter::OnHealthChanged);
 }
 
 void ATPSCharacter::MoveForward(float Value)
@@ -102,6 +110,21 @@ void ATPSCharacter::StopFire()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
+	}
+}
+
+void ATPSCharacter::OnHealthChanged(UTPSHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (Health <= 0.0f && !bDied)
+	{
+		// 死亡！
+		bDied = true;
+		GetMovementComponent()->StopMovementImmediately(); // 不能移动
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 不干扰碰撞
+
+		DetachFromControllerPendingDestroy(); // 不能旋转
+
+		SetLifeSpan(10.0f);  // 设置人体10s后消失
 	}
 }
 

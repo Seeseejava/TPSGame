@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "TPSweapon.h"
+#include "TPSWeapon.h"
 #include "TPSGame/TPSGame.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
@@ -16,7 +16,7 @@ FAutoConsoleVariableRef CAVRDebugWeaponDrawing(TEXT("TPS.DebugWeapons"), DebugWe
 
 
 // Sets default values
-ATPSweapon::ATPSweapon()
+ATPSWeapon::ATPSWeapon()
 {
 
 
@@ -31,14 +31,14 @@ ATPSweapon::ATPSweapon()
 	RateOfFire = 600;  // 每分钟可以发射的子弹数目
 }
 
-void ATPSweapon::BeginPlay()
+void ATPSWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
 	TimeBetweenShots = 60 / RateOfFire;
 }
 
-void ATPSweapon::Fire()
+void ATPSWeapon::Fire()
 {
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
@@ -111,21 +111,21 @@ void ATPSweapon::Fire()
 	}
 }
 
-void ATPSweapon::StartFire()
+void ATPSWeapon::StartFire()
 {
 	float FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
 
-	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots,this, &ATPSweapon::Fire, TimeBetweenShots, true, FirstDelay);
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots,this, &ATPSWeapon::Fire, TimeBetweenShots, true, FirstDelay);
 }
 
-void ATPSweapon::StopFire()
+void ATPSWeapon::StopFire()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 }
 
 
 
-void ATPSweapon::PlayFireEffects(FVector TracerEndPoint)
+void ATPSWeapon::PlayFireEffects(FVector TracerEndPoint)
 {
 
 	if (MuzzleEffect)
