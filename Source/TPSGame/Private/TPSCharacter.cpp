@@ -183,4 +183,5 @@ void ATPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
+	DOREPLIFETIME(ATPSCharacter, bDied);
 }
