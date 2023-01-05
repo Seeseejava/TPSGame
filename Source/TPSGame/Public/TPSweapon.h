@@ -20,10 +20,10 @@ struct FHitScanTrace
 
 public:
 	UPROPERTY()
-		TEnumAsByte<EPhysicalSurface> SurfaceType;  // 将枚举转换为字节，让其在这一结构体中得到正确复制
+	TEnumAsByte<EPhysicalSurface> SurfaceType;  // 将枚举转换为字节，让其在这一结构体中得到正确复制
 
 	UPROPERTY()
-		FVector_NetQuantize TraceTo;// 能包装矢量，让矢量不那么精确，同时经由网络传输的数据也会相应更少
+	FVector_NetQuantize TraceTo;// 能包装矢量，让矢量不那么精确，同时经由网络传输的数据也会相应更少
 };
 
 UCLASS()

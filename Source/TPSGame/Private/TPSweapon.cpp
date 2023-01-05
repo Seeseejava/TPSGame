@@ -99,6 +99,12 @@ void ATPSWeapon::Fire()
 		}
 
 		PlayFireEffects(TracerEndPoint);
+
+		if (HasAuthority())
+		{
+			HitScanTrace.SurfaceType = SurfaceType;
+			HitScanTrace.TraceTo = TracerEndPoint;
+		}
 		
 		LastFireTime = GetWorld()->TimeSeconds;
 	}
