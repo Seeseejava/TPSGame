@@ -9,6 +9,7 @@
 #include "TPSWeapon.h"
 #include "TPSHealthComponent.h"
 #include "TPSGame/TPSGame.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ATPSCharacter::ATPSCharacter()
@@ -38,23 +39,25 @@ ATPSCharacter::ATPSCharacter()
 // Called when the game starts or when spawned
 void ATPSCharacter::BeginPlay()
 {
-	Super::BeginPlay();         
+	Super::BeginPlay();
 
 	DefaultFOV = CameraComp->FieldOfView;
-
-	// 创建默认武器
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	CurrentWeapon = GetWorld()->SpawnActor<ATPSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->SetOwner(this);
-		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachScoketName);
-	}
-	
 	HealthComp->OnHealthChanged.AddDynamic(this, &ATPSCharacter::OnHealthChanged);
+
+	if (HasAuthority())
+	{
+		// 创建默认武器
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		CurrentWeapon = GetWorld()->SpawnActor<ATPSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->SetOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachScoketName);
+		}
+	}
 }
 
 void ATPSCharacter::MoveForward(float Value)
@@ -174,3 +177,10 @@ FVector ATPSCharacter::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
+//明确规定出我们想要复制的内容和方式
+void ATPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
+}

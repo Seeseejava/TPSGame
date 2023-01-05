@@ -9,6 +9,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "TimerManager.h"
+#include "Net/UnrealNetWork.h"
 
 // 创建控制台指令
 static int32 DebugWeaponDrawing = 0;
@@ -29,6 +30,11 @@ ATPSWeapon::ATPSWeapon()
 	BaseDamage = 20.0f;
 
 	RateOfFire = 600;  // 每分钟可以发射的子弹数目
+
+	SetReplicates(true);
+
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
 }
 
 void ATPSWeapon::BeginPlay()
@@ -40,6 +46,11 @@ void ATPSWeapon::BeginPlay()
 
 void ATPSWeapon::Fire()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerFire();
+	}
+
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
@@ -77,25 +88,7 @@ void ATPSWeapon::Fire()
 			}
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			UParticleSystem* SelectedEffect = nullptr;
-
-			switch (SurfaceType)
-			{
-			case SURFACE_FLESHDEFAULT:
-				SelectedEffect = FleshImpactEffect;
-				break;
-			case SURFACE_FLESHVULNERABLE:
-				SelectedEffect = FleshImpactEffect;
-				break;
-			default:
-				SelectedEffect = DefaultImpactEffect;
-				break;
-			}
-
-			if (SelectedEffect)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-			}
+			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);
 
 			TracerEndPoint = Hit.ImpactPoint;
 		}
@@ -110,6 +103,25 @@ void ATPSWeapon::Fire()
 		LastFireTime = GetWorld()->TimeSeconds;
 	}
 }
+
+void ATPSWeapon::ServerFire_Implementation()
+{
+	Fire();
+}
+
+bool ATPSWeapon::ServerFire_Validate()
+{
+	return true;
+}
+
+void ATPSWeapon::OnRep_HitScanTrace()
+{
+	// 播放外观效果
+	PlayFireEffects(HitScanTrace.TraceTo);
+
+	PlayImpactEffects(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
+}
+
 
 void ATPSWeapon::StartFire()
 {
@@ -156,3 +168,37 @@ void ATPSWeapon::PlayFireEffects(FVector TracerEndPoint)
 	}
 }
 
+void ATPSWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+{
+	UParticleSystem* SelectedEffect = nullptr;
+
+	switch (SurfaceType)
+	{
+	case SURFACE_FLESHDEFAULT:
+		SelectedEffect = FleshImpactEffect;
+		break;
+	case SURFACE_FLESHVULNERABLE:
+		SelectedEffect = FleshImpactEffect;
+		break;
+	default:
+		SelectedEffect = DefaultImpactEffect;
+		break;
+	}
+
+	if (SelectedEffect)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		FVector ShotDirection = ImpactPoint - MuzzleLocation;  // 视觉上的轨迹线与实际摄像机播放的轨迹线有些差异
+		ShotDirection.Normalize();
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ShotDirection.Rotation());
+	}
+}
+
+void ATPSWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ATPSWeapon, HitScanTrace, COND_SkipOwner); //复制给除操控武器的其他客户端
+}
